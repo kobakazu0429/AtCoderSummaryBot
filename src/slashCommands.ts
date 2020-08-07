@@ -91,13 +91,12 @@ function normalizer(text: string) {
 }
 
 async function getUserData() {
-  const matcherPath = path.join(currentDir, "..", "AtCoderIdMatcher.json");
-  const json: Array<{ slackUserId: string; atCoderId: string }> = JSON.parse(
-    await fs.readFile(matcherPath, "utf-8")
+  const json = await axios.get(
+    "https://atcoder-summary-bot.netlify.app/AtCoderIdMatcher.json"
   );
 
   const matcher = new Map<string, string>();
-  json.forEach(({ slackUserId, atCoderId }) => {
+  json.data.forEach(({ slackUserId, atCoderId }) => {
     matcher.set(slackUserId, atCoderId);
   });
   return matcher;
