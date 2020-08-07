@@ -90,7 +90,7 @@ function normalizer(text: string) {
 }
 
 async function getUserData() {
-  const matcherPath = path.resolve("AtCoderIdMatcher.json");
+  const matcherPath = path.resolve(__dirname, "..", "AtCoderIdMatcher.json");
   const json: Array<{ slackUserId: string; atCoderId: string }> = JSON.parse(
     await fs.readFile(matcherPath, "utf-8")
   );
