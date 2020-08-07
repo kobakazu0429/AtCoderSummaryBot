@@ -3,8 +3,9 @@ import * as cheerio from "cheerio";
 import axios from "axios";
 import * as path from "path";
 import * as querystring from "querystring";
-
 import { promises as fs } from "fs";
+
+const currentDir = process.env.LAMBDA_TASK_ROOT;
 
 interface AtCoderResult {
   time: Date;
@@ -90,7 +91,7 @@ function normalizer(text: string) {
 }
 
 async function getUserData() {
-  const matcherPath = path.resolve(__dirname, "..", "AtCoderIdMatcher.json");
+  const matcherPath = path.join(currentDir, "AtCoderIdMatcher.json");
   const json: Array<{ slackUserId: string; atCoderId: string }> = JSON.parse(
     await fs.readFile(matcherPath, "utf-8")
   );
