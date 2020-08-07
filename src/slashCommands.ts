@@ -164,6 +164,7 @@ async function main(e: APIGatewayProxyEvent) {
 function msgBuilder(contestId: string, data: Data[]) {
   const header = {
     type: "section",
+    response_type: "in_channel",
     text: {
       type: "plain_text",
       text: `${contestId.toUpperCase()} Result Summary`,
