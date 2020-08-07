@@ -152,6 +152,7 @@ async function main(e: APIGatewayProxyEvent) {
   const blocks = msgBuilder(contestId, data);
   const payload = {
     statusCode: 200,
+    response_type: "in_channel",
     blocks,
   };
   console.log("payload", JSON.stringify(payload));
@@ -164,7 +165,6 @@ async function main(e: APIGatewayProxyEvent) {
 function msgBuilder(contestId: string, data: Data[]) {
   const header = {
     type: "section",
-    response_type: "in_channel",
     text: {
       type: "plain_text",
       text: `${contestId.toUpperCase()} Result Summary`,
