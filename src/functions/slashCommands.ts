@@ -39,7 +39,7 @@ async function getAtCoderIdFromSlackUserId(members: string[]) {
   }
 }
 
-interface Data {
+interface ResultSummary {
   member: string;
   userPage: string;
   resultSummary: { [key in string]: AtCoderResult };
@@ -58,20 +58,22 @@ async function main(e: APIGatewayProxyEvent) {
   const members = await getAtCoderIdFromSlackUserId(postData.members);
   // console.log(members);
 
-  const data: Data[] = await Promise.all(
+  const resultSummary: ResultSummary[] = await Promise.all(
     members.map(async (member) => {
       const atcoder = new AtCoder(contestId, member);
-      return atcoder.scrapingAtCoderContestResult().then((resultSummary) => ({
-        member,
-        resultSummary,
-        userPage: atcoder.userResultPageUrl,
-      }));
+      return atcoder
+        .scrapingAtCoderContestResultSummary()
+        .then((resultSummary) => ({
+          member,
+          resultSummary,
+          userPage: atcoder.userResultPageUrl,
+        }));
     })
   );
 
-  console.log(data);
+  console.log(resultSummary);
 
-  const blocks = msgBuilder(contestId, data);
+  const blocks = msgBuilder(contestId, resultSummary);
   const payload = {
     statusCode: 200,
     response_type: "in_channel",
@@ -84,7 +86,7 @@ async function main(e: APIGatewayProxyEvent) {
   console.log(res);
 }
 
-function msgBuilder(contestId: string, data: Data[]) {
+function msgBuilder(contestId: string, data: ResultSummary[]) {
   const header = {
     type: "section",
     text: {

@@ -19,7 +19,7 @@ export class AtCoder {
   private baseUrl: string;
   private url: string;
 
-  async scrapingAtCoderContestResult() {
+  async scrapingAtCoderContestResultSummary() {
     const raw = await this.getRawHtml();
     const result = this.parse(raw);
     const summry = this.summry(result);
