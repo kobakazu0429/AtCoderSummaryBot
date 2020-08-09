@@ -4,20 +4,25 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "netlify-lambda build src/",
-    "serve": "netlify-lambda serve src/"
+    "build": "netlify-lambda build src/functions",
+    "serve": "netlify-lambda serve src/functions",
+    "lint": "eslint --ext .ts ./src --fix"
   },
   "engines": {
     "node": "^12.9.0"
   },
   "dependencies": {
     "@babel/preset-typescript": "^7.10.4",
-    "@types/aws-lambda": "^8.10.59",
-    "@types/cheerio": "^0.22.21",
-    "@types/node": "^14.0.27",
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
     "netlify-lambda": "^2.0.1",
     "typescript": "^3.9.7"
+  },
+  "devDependencies": {
+    "@kobakazu0429/eslint-config-typescript": "^1.1.0",
+    "@types/aws-lambda": "^8.10.59",
+    "@types/cheerio": "^0.22.21",
+    "@types/node": "^14.0.27",
+    "eslint": "^7.6.0"
   }
 }

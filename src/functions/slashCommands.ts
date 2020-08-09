@@ -1,85 +1,7 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
-import * as cheerio from "cheerio";
+import { APIGatewayProxyHandler, APIGatewayProxyEvent } from "aws-lambda";
 import axios from "axios";
-import * as path from "path";
 import * as querystring from "querystring";
-import { promises as fs } from "fs";
-
-const currentDir = process.env.LAMBDA_TASK_ROOT;
-
-interface AtCoderResult {
-  time: Date;
-  title: string;
-  status: string;
-  detail: string;
-}
-
-class AtCoder {
-  constructor(contestId: string, atCoderId: string) {
-    const baseUrl = "https://atcoder.jp";
-    this.baseUrl = baseUrl;
-    const url = `${baseUrl}/contests/${contestId}/submissions?f.Task=&f.Language=&f.Status=&f.User=${atCoderId}`;
-    this.url = url;
-  }
-
-  async scrapingAtCoderContestResult() {
-    const raw = await this.getRawHtml();
-    const result = this.parse(raw);
-    const summry = this.summry(result);
-    return summry;
-  }
-  private baseUrl: string;
-  private url: string;
-
-  public get userResultPageUrl(): string {
-    return this.url;
-  }
-
-  async getRawHtml() {
-    const result = await axios.get<string>(this.url);
-    return result.data;
-  }
-
-  parse(html: string) {
-    const $ = cheerio.load(html);
-    const tr = $("tr");
-    const td = tr.slice(1).map((_i, el) => $(el).find("td"));
-    const result: AtCoderResult[] = [];
-    td.each((_i, el) => {
-      const timeEl = $(el).eq(0);
-      const titleEl = $(el).eq(1);
-      const statusEl = $(el).eq(6);
-      const detailEl = $(el).eq(9);
-      const time = timeEl.find("time").text();
-      const title = titleEl.text();
-      const status = statusEl.text();
-      const detail = detailEl.find("a").attr("href");
-
-      result.push({
-        time: new Date(time),
-        title,
-        status,
-        detail: this.baseUrl + detail,
-      });
-    });
-
-    return result;
-  }
-
-  summry(data: AtCoderResult[]) {
-    const summery = {};
-
-    data.forEach((v) => {
-      const time = new Date(v.time);
-      const Q = v.title[0];
-      if (summery[Q] && summery[Q].time > time) return;
-
-      summery[Q] = { ...v, time };
-    });
-
-    return summery;
-  }
-}
+import { AtCoder, AtCoderResult } from "../AtCoder";
 
 function normalizer(text: string) {
   const prettyData = text.split(/“|”|"|'|\s/).filter((v) => v);
@@ -107,7 +29,7 @@ async function getAtCoderIdFromSlackUserId(members: string[]) {
 
   if (members.length === 0) {
     const data: string[] = [];
-    for (let kv of atCoderIdMatcher) {
+    for (const kv of atCoderIdMatcher) {
       const id = kv[1];
       data.push(id);
     }
@@ -117,7 +39,7 @@ async function getAtCoderIdFromSlackUserId(members: string[]) {
   }
 }
 
-interface Data {
+interface ResultSummary {
   member: string;
   userPage: string;
   resultSummary: { [key in string]: AtCoderResult };
@@ -136,20 +58,22 @@ async function main(e: APIGatewayProxyEvent) {
   const members = await getAtCoderIdFromSlackUserId(postData.members);
   // console.log(members);
 
-  const data: Data[] = await Promise.all(
+  const resultSummary: ResultSummary[] = await Promise.all(
     members.map(async (member) => {
       const atcoder = new AtCoder(contestId, member);
-      return atcoder.scrapingAtCoderContestResult().then((resultSummary) => ({
-        member,
-        resultSummary,
-        userPage: atcoder.userResultPageUrl,
-      }));
+      return atcoder
+        .scrapingAtCoderContestResultSummary()
+        .then((resultSummary) => ({
+          member,
+          resultSummary,
+          userPage: atcoder.userResultPageUrl,
+        }));
     })
   );
 
-  console.log(data);
+  console.log(resultSummary);
 
-  const blocks = msgBuilder(contestId, data);
+  const blocks = msgBuilder(contestId, resultSummary);
   const payload = {
     statusCode: 200,
     response_type: "in_channel",
@@ -162,7 +86,7 @@ async function main(e: APIGatewayProxyEvent) {
   console.log(res);
 }
 
-function msgBuilder(contestId: string, data: Data[]) {
+function msgBuilder(contestId: string, data: ResultSummary[]) {
   const header = {
     type: "section",
     text: {
@@ -207,7 +131,11 @@ function msgBuilder(contestId: string, data: Data[]) {
   return [header, divider, ...body];
 }
 
-export const handler = async (event: any, context: any, callback: any) => {
+export const handler: APIGatewayProxyHandler = async (
+  event,
+  _context,
+  callback
+) => {
   try {
     // solution of timed out by 3,000 ms
     callback(null, { statusCode: 202, body: "" });
