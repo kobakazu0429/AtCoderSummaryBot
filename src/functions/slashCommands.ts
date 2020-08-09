@@ -1,11 +1,7 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import * as cheerio from "cheerio";
 import axios from "axios";
-import * as path from "path";
 import * as querystring from "querystring";
-import { promises as fs } from "fs";
-
-const currentDir = process.env.LAMBDA_TASK_ROOT;
 
 interface AtCoderResult {
   time: Date;
@@ -22,14 +18,15 @@ class AtCoder {
     this.url = url;
   }
 
+  private baseUrl: string;
+  private url: string;
+
   async scrapingAtCoderContestResult() {
     const raw = await this.getRawHtml();
     const result = this.parse(raw);
     const summry = this.summry(result);
     return summry;
   }
-  private baseUrl: string;
-  private url: string;
 
   public get userResultPageUrl(): string {
     return this.url;
@@ -107,7 +104,7 @@ async function getAtCoderIdFromSlackUserId(members: string[]) {
 
   if (members.length === 0) {
     const data: string[] = [];
-    for (let kv of atCoderIdMatcher) {
+    for (const kv of atCoderIdMatcher) {
       const id = kv[1];
       data.push(id);
     }
