@@ -73,10 +73,11 @@ export class AtCoder {
 
     data.forEach((v) => {
       const time = new Date(v.time);
-      const Q = v.title[0];
-      if (summery[Q] && summery[Q].time > time) return;
+      const { title } = v;
 
-      summery[Q] = { ...v, time };
+      if (summery[title] && summery[title].time > time) return;
+
+      summery[title] = { ...v, time };
     });
 
     return summery;
