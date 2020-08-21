@@ -5,9 +5,7 @@ import { AtCoder, AtCoderResult } from "../AtCoder";
 
 function normalizer(text: string) {
   const prettyData = text.split(/“|”|"|'|\s/).filter((v) => v);
-  const contestId = prettyData[0].startsWith("abc")
-    ? prettyData[0]
-    : `abc${prettyData[0]}`;
+  const contestId = prettyData[0];
   const members = prettyData.slice(1).map((v) => v.match(/^<@(\w+)\|\w+>$/)[1]);
   return { contestId, members };
 }
