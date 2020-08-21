@@ -42,19 +42,26 @@ export class AtCoder {
     const result: AtCoderResult[] = [];
     td.each((_i, el) => {
       const timeEl = $(el).eq(0);
-      const titleEl = $(el).eq(1);
-      const statusEl = $(el).eq(6);
-      const detailEl = $(el).eq(9);
       const time = timeEl.find("time").text();
+
+      const titleEl = $(el).eq(1);
       const title = titleEl.text();
+
+      const statusEl = $(el).eq(6);
       const status = statusEl.text();
-      const detail = detailEl.find("a").attr("href");
+
+      const detailEls = Array.from($(el).find("a"));
+      const submissionsRegExp = /^\/contests\/\w+\/submissions\/(\d+)$/;
+      const detailUrl = detailEls
+        .map((v) => $(v).attr("href").match(submissionsRegExp))
+        .filter(Boolean)
+        .flat()[0];
 
       result.push({
         time: new Date(time),
         title,
         status,
-        detail: this.baseUrl + detail,
+        detail: this.baseUrl + detailUrl,
       });
     });
 
